@@ -13,6 +13,7 @@
  * control back to the original method with a second unconditional jump.
  */
 
+function _nullHook() {}
 
 /**
  * This class contains the basic functionality for both injections on object
@@ -36,6 +37,12 @@ export class ObjectInjection {
     if (typeof (obj[method]) === 'undefined') {
       throw "Object doesn't contain the method " + method;
     }
+    // When hooking a method using one of the below hook styles,
+    // `this.hook` will be set to a bound copy of the same method.
+    // This allows for simply calling `hook()` to re-hook the
+    // method after unhooking, without needing to know which
+    // kind of hook was installed.
+    this.hook = _nullHook;
     this.target = obj;
     this.methodName = method;
     this.oldMethod = obj[method];
@@ -66,7 +73,6 @@ export class ObjectInjection {
    */
   unhook() {
     this.target[this.methodName] = this.oldMethod;
-    this.hook = null;
     this.injected = false;
     return this;
   }
