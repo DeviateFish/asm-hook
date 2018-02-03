@@ -13,7 +13,9 @@
  * control back to the original method with a second unconditional jump.
  */
 
-function _nullHook() {}
+function _nullHook() {
+  throw new Error('Cannot call `hook` if the hook was never installed!');
+}
 
 /**
  * This class contains the basic functionality for both injections on object
@@ -92,16 +94,13 @@ export class ObjectInjection {
    */
   preHook() {
     var that = this;
-    if (this.injected) {
-      this.unhook();
-    }
-    this.target[this.methodName] = function () {
-      that.func.apply(this, arguments);
-      return that.oldMethod.apply(this, arguments);
-    };
-    this.hook = this.preHook.bind(this);
-    this.injected = true;
-    return this;
+    return this._installHook(
+      function hookWrapper() {
+        that.func.apply(this, arguments);
+        return that.oldMethod.apply(this, arguments);
+      },
+      this.preHook.bind(this)
+    );
   }
 
   /**
@@ -115,17 +114,14 @@ export class ObjectInjection {
    */
   postHook() {
     var that = this;
-    if (this.injected) {
-      this.unhook();
-    }
-    this.target[this.methodName] = function () {
-      var ret = that.oldMethod.apply(this, arguments);
-      that.func.apply(this, arguments);
-      return ret;
-    };
-    this.hook = this.postHook.bind(this);
-    this.injected = true;
-    return this;
+    return this._installHook(
+      function hookWrapper() {
+        var ret = that.oldMethod.apply(this, arguments);
+        that.func.apply(this, arguments);
+        return ret;
+      },
+      this.postHook.bind(this)
+    );
   }
 
   /**
@@ -143,18 +139,19 @@ export class ObjectInjection {
    */
   passThrough() {
     var that = this;
-    if (this.injected) {
-      this.unhook();
-    }
-    this.target[this.methodName] = function () {
-      var args = arguments;
-      var ret = that.oldMethod.apply(this, arguments);
-      args.push(ret);
-      return that.func.apply(this, args);
-    };
-    this.hook = this.passThrough.bind(this);
-    this.injected = true;
-    return this;
+    return this._installHook(
+      function hookWrapper() {
+        var l = arguments.length;
+        var args = new Array(l);
+        for (var i = 0; i < l; i++) {
+          args[i] = arguments[i];
+        }
+        var ret = that.oldMethod.apply(this, arguments);
+        args.push(ret);
+        return that.func.apply(this, args);
+      },
+      this.passThrough.bind(this)
+    );
   }
 
   /**
@@ -172,16 +169,13 @@ export class ObjectInjection {
    */
   intercept() {
     var that = this;
-    if (this.injected) {
-      this.unhook();
-    }
-    this.target[this.methodName] = function () {
-      var ret = that.oldMethod.apply(this, arguments);
-      return that.func.apply(this, [ret]);
-    };
-    this.hook = this.intercept.bind(this);
-    this.injected = true;
-    return this;
+    return this._installHook(
+      function hookWrapper() {
+        var ret = that.oldMethod.apply(this, arguments);
+        return that.func.apply(this, [ret]);
+      },
+      this.intercept.bind(this)
+    );
   }
 
   /**
@@ -193,14 +187,10 @@ export class ObjectInjection {
    * @return {this}
    */
   replace() {
-    var that = this;
-    if (this.injected) {
-      this.unhook();
-    }
-    this.target[this.methodName] = this.func.bind(this.target);
-    this.hook = this.replace.bind(this);
-    this.injected = true;
-    return this;
+    return this._installHook(
+      this.func.bind(this.target),
+      this.replace.bind(this)
+    );
   }
 
   /**
@@ -217,18 +207,15 @@ export class ObjectInjection {
    */
   conditionalHook(_default) {
     var that = this;
-    if (this.injected) {
-      this.unhook();
-    }
-    this.target[this.methodName] = function () {
-      if (that.func.apply(this, arguments)) {
-        return that.oldMethod.apply(this, arguments);
-      }
-      return _default;
-    };
-    this.hook = this.conditionalHook.bind(this, _default);
-    this.injected = true;
-    return this;
+    return this._installHook(
+      function hookWrapper() {
+        if (that.func.apply(this, arguments)) {
+          return that.oldMethod.apply(this, arguments);
+        }
+        return _default;
+      },
+      this.conditionalHook.bind(this, _default)
+    );
   }
 
   /**
@@ -247,19 +234,26 @@ export class ObjectInjection {
    */
   handle() {
     var that = this;
+    return this._installHook(
+      function hookWrapper() {
+        var handler = that.oldMethod;
+        var l = arguments.length;
+        var args = new Array(l);
+        for (var i = 0; i < l; i++) {
+          args[i] = arguments[i];
+        }
+        return that.func.apply(this, [handler, args]);
+      },
+      this.handle.bind(this)
+    );
+  }
+
+  _installHook(hookWrapper, hookMethod) {
     if (this.injected) {
       this.unhook();
     }
-    this.target[this.methodName] = function () {
-      var handler = that.oldMethod;
-      var l = arguments.length;
-      var args = new Array(l);
-      for (var i = 0; i < l; i++) {
-        args[i] = arguments[i];
-      }
-      return that.func.apply(this, [handler, args]);
-    };
-    this.hook = this.handle.bind(this);
+    this.target[this.methodName] = hookWrapper;
+    this.hook = hookMethod;
     this.injected = true;
     return this;
   }
