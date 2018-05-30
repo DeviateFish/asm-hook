@@ -46,7 +46,7 @@ net.getThings(handleThings);
 /*
   Now, `net.getThings` calls our hook method instead, which replaces the
   `handleThings` callback with our own callback.  Our callback wraps 
-  `handleThings` and lets us counts the results (any maybe even modify them)
+  `handleThings` and lets us counts the results (and maybe even modify them)
   before calling `handleThings` itself.
  */
 
