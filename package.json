@@ -1,0 +1,30 @@
+{
+  "name": "asm-hook",
+  "version": "1.0.0",
+  "description": "A simple library for doing assembly-style method hooking",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeviateFish/asm-hook.git"
+  },
+  "keywords": [
+    "hook",
+    "instrumentation",
+    "assembly",
+    "injection",
+    "code",
+    "injection",
+    "method",
+    "hooking",
+    "asm"
+  ],
+  "author": "DeviateFish",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DeviateFish/asm-hook/issues"
+  },
+  "homepage": "https://github.com/DeviateFish/asm-hook#readme"
+}
