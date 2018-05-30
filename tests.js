@@ -138,6 +138,46 @@ tests.push(['replace', function() {
   isReset();
 }]);
 
+tests.push(['prototype', function() {
+  // An example of how to hook the prototype of things that utilize
+  // prototypical inheritance.  This hooks the prototype's method, applying
+  // the hook to all instances of thing Thing.
+  const Thing = function(type) {
+    this.type = type;
+  };
+  Thing.prototype.logType = function() {
+    logger.log(this.type);
+  };
+  const __original = Thing.prototype.logType;
+
+  assert(logger.flush() === '', 'log is empty');
+  const thing1 = new Thing('1');
+  const thing2 = new Thing('2');
+
+  thing1.logType();
+  assert(logger.flush() === '1', 'Thing 1 is fine');
+  thing2.logType();
+  assert(logger.flush() === '2', 'Thing 2 is fine');
+
+  assert(thing1.logType === __original, 'Thing 1 has original log');
+  assert(thing2.logType === __original, 'Thing 2 has original log');
+
+  const unhook = hook.preHook(function(){
+    logger.log('hook');
+    assert(this instanceof Thing, '`this` is a Thing');
+  }, Thing.prototype, 'logType');
+
+  assert(thing1.logType !== __original, 'Thing 1 has been hooked');
+  assert(thing2.logType !== __original, 'Thing 2 has been hooked');
+  thing1.logType();
+  assert(logger.flush() === 'hook1', 'Thing 1 was hooked');
+  thing2.logType();
+  assert(logger.flush() === 'hook2', 'Thing 2 was hooked');
+  unhook();
+  assert(thing1.logType === __original, 'Thing 1 has original log');
+  assert(thing2.logType === __original, 'Thing 2 has original log');
+}]);
+
 tests.forEach(function(test) {
   const name = test[0];
   try {
