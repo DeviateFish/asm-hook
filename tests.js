@@ -1,23 +1,23 @@
-const hook = require('.');
-const logger = {
+var hook = require('.');
+var logger = {
   _log: '',
   log: function(msg) {
     this._log += msg;
   },
   flush: function() {
-    const log = this._log;
+    var log = this._log;
     this._log = '';
     return log;
   }
 };
 
-const testObject = {
+var testObject = {
   testMethod: function(arg) {
     logger.log(arg);
     return arg;
   }
 };
-const __original = testObject.testMethod;
+var __original = testObject.testMethod;
 
 function assert(test, msg) {
   if (!test) {
@@ -26,7 +26,7 @@ function assert(test, msg) {
 }
 
 function assertLog(expected) {
-  const log = logger.flush();
+  var log = logger.flush();
   assert(
     log === expected,
     'log message ' + log + ' matches expected ' + expected
@@ -38,11 +38,11 @@ function isReset() {
   assert(testObject.testMethod === __original, 'test method is original');
 }
 
-const tests = [];
+var tests = [];
 tests.push(['hook', function() {
   isReset();
 
-  const unhook = hook(function(target, arguments){
+  var unhook = hook(function(target, arguments){
     logger.log('hook');
     assert(target === __original, 'target is original');
     assert(arguments[0] === 'test', 'arg was `test`');
@@ -60,7 +60,7 @@ tests.push(['hook', function() {
 tests.push(['preHook', function() {
   isReset();
 
-  const unhook = hook.preHook(function(arg){
+  var unhook = hook.preHook(function(arg){
     logger.log('hook');
     assert(arg === 'test', 'arg was `test`');
     return 'hook';
@@ -76,7 +76,7 @@ tests.push(['preHook', function() {
 tests.push(['postHook', function() {
   isReset();
 
-  const unhook = hook.postHook(function(arg){
+  var unhook = hook.postHook(function(arg){
     logger.log('hook');
     assert(arg === 'test', 'arg was `test`');
     return 'hook';
@@ -92,7 +92,7 @@ tests.push(['postHook', function() {
 tests.push(['passThrough', function() {
   isReset();
 
-  const unhook = hook.passThrough(function(arg, val){
+  var unhook = hook.passThrough(function(arg, val){
     logger.log('hook');
     assert(arg === 'test', 'arg was `test`');
     assert(val === 'test', 'return value from original was `test`');
@@ -109,7 +109,7 @@ tests.push(['passThrough', function() {
 tests.push(['intercept', function() {
   isReset();
 
-  const unhook = hook.intercept(function(arg){
+  var unhook = hook.intercept(function(arg){
     logger.log('hook');
     assert(arg === 'test', 'arg was `test`');
     return 'hook';
@@ -125,7 +125,7 @@ tests.push(['intercept', function() {
 tests.push(['replace', function() {
   isReset();
 
-  const unhook = hook.replace(function(arg){
+  var unhook = hook.replace(function(arg){
     logger.log('hook');
     assert(arg === 'test', 'arg was `test`');
     return 'hook';
@@ -142,17 +142,17 @@ tests.push(['prototype', function() {
   // An example of how to hook the prototype of things that utilize
   // prototypical inheritance.  This hooks the prototype's method, applying
   // the hook to all instances of thing Thing.
-  const Thing = function(type) {
+  var Thing = function(type) {
     this.type = type;
   };
   Thing.prototype.logType = function() {
     logger.log(this.type);
   };
-  const __original = Thing.prototype.logType;
+  var __original = Thing.prototype.logType;
 
   assert(logger.flush() === '', 'log is empty');
-  const thing1 = new Thing('1');
-  const thing2 = new Thing('2');
+  var thing1 = new Thing('1');
+  var thing2 = new Thing('2');
 
   thing1.logType();
   assert(logger.flush() === '1', 'Thing 1 is fine');
@@ -162,7 +162,7 @@ tests.push(['prototype', function() {
   assert(thing1.logType === __original, 'Thing 1 has original log');
   assert(thing2.logType === __original, 'Thing 2 has original log');
 
-  const unhook = hook.preHook(function(){
+  var unhook = hook.preHook(function(){
     logger.log('hook');
     assert(this instanceof Thing, '`this` is a Thing');
   }, Thing.prototype, 'logType');
@@ -179,7 +179,7 @@ tests.push(['prototype', function() {
 }]);
 
 tests.forEach(function(test) {
-  const name = test[0];
+  var name = test[0];
   try {
     test[1]();
     console.log(name + ': PASS');

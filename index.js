@@ -1,9 +1,10 @@
 /*
-  This is a slightly different take on the javascript hooks. It uses the
-  `handle` type hook as its basis, then builds all the other hook types
-  from that simple building block.
-
-  The result is actually quite straightforward.
+  This is a set of tools for intercepting and instrumenting javascript
+  object methods.  It borrows heavily from x86 injection methods that center
+  around hijacking the flow of control at various points of function
+  invocation.  By replacing a target method with a hook, any call to that
+  method will call the hook, instead, yielding control to us to manipulate as
+  we see fit.
  */
 
 /**
@@ -33,7 +34,7 @@ function slice(arguments) {
  * @return {Function}            Returns a function that can be used to unhook
  */
 function hook(fn, object, methodName) {
-  const target = object[methodName];
+  var target = object[methodName];
   object[methodName] = function() {
     return fn.apply(this, [target, arguments]);
   }
