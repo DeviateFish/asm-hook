@@ -1,6 +1,6 @@
 {
   "name": "asm-hook",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple library for doing assembly-style method hooking",
   "main": "index.js",
   "scripts": {

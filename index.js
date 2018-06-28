@@ -9,14 +9,14 @@
 
 /**
  * Just a util function for those times I need to copy the arguments array
- * @param  {Arguments} arguments Function arguments
+ * @param  {Arguments} _arguments Function arguments
  * @return {Array}               Copy of the function arguments, as as array.
  */
-function slice(arguments) {
-  var l = arguments.length, i;
+function slice(_arguments) {
+  var l = _arguments.length, i;
   var args = new Array(l);
   for (i = 0; i < l; i++) {
-    args[i] = arguments[i];
+    args[i] = _arguments[i];
   }
   return args;
 }
@@ -54,9 +54,9 @@ function hook(fn, object, methodName) {
  */
 hook.preHook = function(fn, object, methodName) {
   return hook(
-    function(target, arguments) {
-      fn.apply(this, arguments);
-      return target.apply(this, arguments);
+    function(target, _arguments) {
+      fn.apply(this, _arguments);
+      return target.apply(this, _arguments);
     },
     object,
     methodName
@@ -74,9 +74,9 @@ hook.preHook = function(fn, object, methodName) {
  */
 hook.postHook = function(fn, object, methodName) {
   return hook(
-    function(target, arguments) {
-      var returnValue = target.apply(this, arguments);
-      fn.apply(this, arguments);
+    function(target, _arguments) {
+      var returnValue = target.apply(this, _arguments);
+      fn.apply(this, _arguments);
       return returnValue;
     },
     object,
@@ -97,9 +97,9 @@ hook.postHook = function(fn, object, methodName) {
  */
 hook.passThrough = function(fn, object, methodName) {
   return hook(
-    function(target, arguments) {
-      var args = slice(arguments);
-      args.push(target.apply(this, arguments));
+    function(target, _arguments) {
+      var args = slice(_arguments);
+      args.push(target.apply(this, _arguments));
       return fn.apply(this, args);
     },
     object,
@@ -118,8 +118,8 @@ hook.passThrough = function(fn, object, methodName) {
  */
 hook.intercept = function(fn, object, methodName) {
   return hook(
-    function(target, arguments) {
-      return fn.call(this, target.apply(this, arguments));
+    function(target, _arguments) {
+      return fn.call(this, target.apply(this, _arguments));
     },
     object,
     methodName
@@ -136,8 +136,8 @@ hook.intercept = function(fn, object, methodName) {
  */
 hook.replace = function(fn, object, methodName) {
   return hook(
-    function(_, arguments) {
-      return fn.apply(this, arguments);
+    function(_, _arguments) {
+      return fn.apply(this, _arguments);
     },
     object,
     methodName
@@ -160,9 +160,9 @@ hook.replace = function(fn, object, methodName) {
  */
 hook.conditionalHook = function(fn, object, methodName, defaultValue) {
   return hook(
-    function(target, arguments) {
-      if (fn.apply(this, arguments)) {
-        return target.apply(this, arguments);
+    function(target, _arguments) {
+      if (fn.apply(this, _arguments)) {
+        return target.apply(this, _arguments);
       }
       return defaultValue;
     },
